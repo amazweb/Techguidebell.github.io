@@ -294,28 +294,28 @@
   <div class="section-title"><span class="num">02</span><h2 data-i18n="contactTitle">Make an offer</h2></div>
   <div class="panel contact-panel">
     <p data-i18n="contactSub" style="max-width:50ch; color:#3a3a34;">Interested? Send your details and offer below, or write directly to the email address at the bottom of the page.</p>
-    <form class="contact-grid" style="margin-top:20px;" onsubmit="return false;">
+    <form class="contact-grid" style="margin-top:20px;" id="offerForm" action="https://formspree.io/f/mwlkkdel" method="POST">
       <div class="field">
         <label data-i18n="labelName">Name</label>
-        <input type="text" required>
+        <input type="text" name="name" required>
       </div>
       <div class="field">
         <label data-i18n="labelEmail">Email</label>
-        <input type="email" required>
+        <input type="email" name="email" required>
       </div>
       <div class="field full">
         <label data-i18n="labelOffer">Your offer (€)</label>
-        <input type="text" class="mono" placeholder="25.000">
+        <input type="text" name="offer" class="mono" placeholder="25.000">
       </div>
       <div class="field full">
         <label data-i18n="labelMessage">Message</label>
-        <textarea></textarea>
+        <textarea name="message"></textarea>
       </div>
       <div class="field full">
         <button type="submit" class="btn" data-i18n="sendOffer">Send offer</button>
       </div>
     </form>
-    <p class="contact-note" data-i18n="contactNote">This form is a template — connect it to an email address or backend before publishing.</p>
+    <p class="contact-note" id="formStatus" data-i18n="contactNote">Replies go straight to the seller's inbox.</p>
   </div>
 </section>
 
@@ -345,7 +345,9 @@ const translations = {
     contactSub: "Interested? Send your details and offer below, or write directly to the email address at the bottom of the page.",
     labelName: "Name", labelEmail: "Email", labelOffer: "Your offer (€)", labelMessage: "Message",
     sendOffer: "Send offer",
-    contactNote: "This form is a template — connect it to an email address or backend before publishing.",
+    contactNote: "Replies go straight to the seller's inbox.",
+    formSending: "Sending…", formSuccess: "Thanks — your offer has been sent.",
+    formError: "Something went wrong. Please try again or email directly.",
     footerLeft: "Belgium · site for sale · direct owner deal", footerRight: "contact@replace-me.be"
   },
   fr: {
@@ -365,7 +367,9 @@ const translations = {
     contactSub: "Intéressé·e ? Envoyez vos coordonnées et votre offre ci-dessous, ou écrivez directement à l'adresse e-mail en bas de page.",
     labelName: "Nom", labelEmail: "E-mail", labelOffer: "Votre offre (€)", labelMessage: "Message",
     sendOffer: "Envoyer l'offre",
-    contactNote: "Ce formulaire est un modèle — reliez-le à une adresse e-mail ou à un backend avant publication.",
+    contactNote: "Les réponses arrivent directement dans la boîte mail du vendeur.",
+    formSending: "Envoi en cours…", formSuccess: "Merci — votre offre a bien été envoyée.",
+    formError: "Une erreur est survenue. Réessayez ou écrivez directement par e-mail.",
     footerLeft: "Belgique · site à vendre · transaction directe avec le propriétaire", footerRight: "contact@replace-me.be"
   },
   nl: {
@@ -385,7 +389,9 @@ const translations = {
     contactSub: "Interesse? Stuur hieronder uw gegevens en bod, of schrijf rechtstreeks naar het e-mailadres onderaan de pagina.",
     labelName: "Naam", labelEmail: "E-mail", labelOffer: "Uw bod (€)", labelMessage: "Bericht",
     sendOffer: "Bod versturen",
-    contactNote: "Dit formulier is een sjabloon — koppel het aan een e-mailadres of backend voordat u publiceert.",
+    contactNote: "Reacties komen rechtstreeks in de mailbox van de verkoper terecht.",
+    formSending: "Bezig met verzenden…", formSuccess: "Bedankt — uw bod is verzonden.",
+    formError: "Er ging iets mis. Probeer opnieuw of mail rechtstreeks.",
     footerLeft: "België · site te koop · rechtstreekse deal met eigenaar", footerRight: "contact@replace-me.be"
   }
 };
@@ -404,6 +410,34 @@ document.querySelectorAll('.lang-switch button').forEach(btn=>{
   btn.addEventListener('click', ()=> setLang(btn.dataset.lang));
 });
 setLang('en');
+
+let currentLang = 'en';
+document.querySelectorAll('.lang-switch button').forEach(btn=>{
+  btn.addEventListener('click', ()=> currentLang = btn.dataset.lang);
+});
+
+const offerForm = document.getElementById('offerForm');
+const formStatus = document.getElementById('formStatus');
+offerForm.addEventListener('submit', async function(e){
+  e.preventDefault();
+  formStatus.removeAttribute('data-i18n');
+  formStatus.textContent = translations[currentLang].formSending;
+  try{
+    const res = await fetch(offerForm.action, {
+      method: 'POST',
+      body: new FormData(offerForm),
+      headers: { 'Accept': 'application/json' }
+    });
+    if(res.ok){
+      formStatus.textContent = translations[currentLang].formSuccess;
+      offerForm.reset();
+    } else {
+      formStatus.textContent = translations[currentLang].formError;
+    }
+  } catch(err){
+    formStatus.textContent = translations[currentLang].formError;
+  }
+});
 </script>
 
 </body>
